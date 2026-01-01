@@ -21,6 +21,20 @@ class Particle {
         position += velocity + acceleration * time_step * time_step;
         acceleration = sf::Vector2f(0, 0);
     }
+
+    void constraint_to_bounds(float width, float height, float radius) {
+        const float diameter = 2 * radius;
+
+        if (position.x < 0)
+            position.x = 0;
+        else if (position.x > width - diameter)
+            position.x = width - diameter;
+
+        if (position.y < 0)
+            position.y = 0;
+        else if (position.y > height - diameter)
+            position.y = height - diameter;
+    }
 };
 
 #endif  // PARTICLE_HPP
