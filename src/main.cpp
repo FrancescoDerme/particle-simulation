@@ -1,8 +1,6 @@
 #include <SFML/Graphics.hpp>
-#include <iostream>
 #include <vector>
 
-#include "SFML/Graphics/PrimitiveType.hpp"
 #include "constraint.hpp"
 #include "input_handler.hpp"
 #include "particle.hpp"
@@ -63,8 +61,8 @@ int main() {
             else if (const auto* mouseButtonPressed =
                          event->getIf<sf::Event::MouseButtonPressed>()) {
                 // Handle mouse clicks
-                InputHandler::handle_mouse_click(mouseButtonPressed,
-                                                 particles, constraints);
+                InputHandler::handle_mouse_click(
+                    *mouseButtonPressed, window, particles, constraints);
             }
         }
 

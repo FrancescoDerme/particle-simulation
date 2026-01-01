@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
+#include "SFML/Graphics/RenderWindow.hpp"
 #include "constraint.hpp"
 #include "math_utils.hpp"
 #include "particle.hpp"
@@ -13,21 +14,23 @@ constexpr float CLICK_TOLERANCE = 5.0f;
 class InputHandler {
    public:
     static void handle_mouse_click(
-        const sf::Event::MouseButtonPressed* mouseButtonPressed,
-        std::vector<Particle>& particles,
+        const sf::Event::MouseButtonPressed& event,
+        const sf::RenderWindow& window,
+        const std::vector<Particle>& particles,
         std::vector<Constraint>& constraints) {
-        if (mouseButtonPressed->button == sf::Mouse::Button::Left) {
-            float mouse_x =
-                static_cast<float>(mouseButtonPressed->position.x);
-            float mouse_y =
-                static_cast<float>(mouseButtonPressed->position.y);
-            tear_cloth(mouse_x, mouse_y, particles, constraints);
+        if (event.button == sf::Mouse::Button::Left) {
+            // Convert from pixel position to world coordinates
+            sf::Vector2f mouse_world =
+                window.mapPixelToCoords(event.position);
+
+            tear_cloth(mouse_world.x, mouse_world.y, particles,
+                       constraints);
         }
     }
 
    private:
     static Constraint* find_nearest_constraint(
-        float mouse_x, float mouse_y,
+        const float mouse_x, const float mouse_y,
         const std::vector<Constraint>& constraints) {
         Constraint* nearest = nullptr;
         float min_distance = CLICK_TOLERANCE;
@@ -47,8 +50,8 @@ class InputHandler {
         return nearest;
     }
 
-    static void tear_cloth(float mouse_x, float mouse_y,
-                           std::vector<Particle>& particles,
+    static void tear_cloth(const float mouse_x, const float mouse_y,
+                           const std::vector<Particle>& particles,
                            std::vector<Constraint>& constraints) {
         Constraint* nearest =
             find_nearest_constraint(mouse_x, mouse_y, constraints);

@@ -2,7 +2,6 @@
 #define CONSTRAINT_HPP
 
 #include <cmath>
-#include <limits>
 
 #include "SFML/System/Vector2.hpp"
 #include "particle.hpp"
