@@ -1,6 +1,8 @@
 #include "math_utils.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <cstdint>
 
 namespace math_utils {
 
@@ -36,6 +38,22 @@ float point_to_segment_distance(const float px, const float py,
         return std::sqrt((px - proj_x) * (px - proj_x) +
                          (py - proj_y) * (py - proj_y));
     }
+}
+
+sf::Color lerpColor(const sf::Color& start, const sf::Color& end,
+                    float t) {
+    t = std::clamp(t, 0.0f, 1.0f);
+
+    std::uint8_t r =
+        static_cast<std::uint8_t>(start.r + (end.r - start.r) * t);
+    std::uint8_t g =
+        static_cast<std::uint8_t>(start.g + (end.g - start.g) * t);
+    std::uint8_t b =
+        static_cast<std::uint8_t>(start.b + (end.b - start.b) * t);
+    std::uint8_t a =
+        static_cast<std::uint8_t>(start.a + (end.a - start.a) * t);
+
+    return sf::Color(r, g, b, a);
 }
 
 }  // namespace math_utils

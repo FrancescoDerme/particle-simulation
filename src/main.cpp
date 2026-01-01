@@ -4,6 +4,7 @@
 
 #include "constraint.hpp"
 #include "input_handler.hpp"
+#include "math_utils.hpp"
 #include "particle.hpp"
 
 constexpr int WIDTH = 1080;
@@ -134,9 +135,13 @@ int main() {
         for (const auto& constraint : constraints) {
             if (!constraint.is_active) continue;
 
+            float t = 35.0f * std::abs(constraint.compute_strain());
+            sf::Color strain_color = math_utils::lerpColor(
+                sf::Color::White, sf::Color::Red, t);
+
             sf::Vertex line[] = {
-                sf::Vertex(constraint.p1->position, sf::Color::White),
-                sf::Vertex(constraint.p2->position, sf::Color::White)};
+                sf::Vertex(constraint.p1->position, strain_color),
+                sf::Vertex(constraint.p2->position, strain_color)};
 
             window.draw(line, 2, sf::PrimitiveType::Lines);
         }

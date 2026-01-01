@@ -19,6 +19,12 @@ class Constraint {
                                     p2->position.y - p1->position.y)},
           is_active{is_active} {};
 
+    float compute_strain() const {
+        sf::Vector2f delta = p2->position - p1->position;
+        float current_length = std::hypot(delta.x, delta.y);
+        return (current_length - initial_length) / initial_length;
+    }
+
     void satisfy() {
         if (!is_active) return;
 
