@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-#include "SFML/System/Vector2.hpp"
+#include "constants.hpp"
 #include "particle.hpp"
 
 class Constraint {
@@ -28,16 +28,23 @@ class Constraint {
     void satisfy() {
         if (!is_active) return;
 
+        float p1_mass = p1->is_pinned ? 0.0f : 1.0f;
+        float p2_mass = p2->is_pinned ? 0.0f : 1.0f;
+        float mass_sum = p1_mass + p2_mass;
+        if (mass_sum == 0.0f) return;
+
         sf::Vector2f delta = p2->position - p1->position;
         float current_length = std::hypot(delta.x, delta.y);
+        if (current_length < EPS) return;
 
-        // Divide by current_length to normalize the delta inside
-        // correction
-        float diff = (current_length - initial_length) / current_length;
-        sf::Vector2f correction = delta * 0.5f * diff;
+        float diff = current_length - initial_length;
+        sf::Vector2f correction =
+            delta / current_length * diff * STIFFNESS;
 
-        if (!p1->is_pinned) p1->position += correction;
-        if (!p2->is_pinned) p2->position -= correction;
+        if (!p1->is_pinned)
+            p1->position += correction * (p1_mass / mass_sum);
+        if (!p2->is_pinned)
+            p2->position -= correction * (p2_mass / mass_sum);
     }
 
     void deactivate() { is_active = false; }

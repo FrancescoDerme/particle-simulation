@@ -1,9 +1,7 @@
 #include <SFML/Graphics.hpp>
-#include <iostream>
 #include <string>
 #include <vector>
 
-#include "SFML/System/Vector2.hpp"
 #include "constants.hpp"
 #include "constraint.hpp"
 #include "input_handler.hpp"
@@ -43,7 +41,7 @@ int main() {
             float x = col * REST_DISTANCE + WIDTH / 3.0;
             float y = row * REST_DISTANCE + HEIGHT / 3.0;
             bool pinned = (row == 0);
-            particles.emplace_back(x, y, pinned);
+            particles.emplace_back(x, y, GRAVITY_FORCE, pinned);
         }
     }
 
@@ -125,10 +123,8 @@ int main() {
             lastMousePos = currentMousePos;
         }
 
-        // Apply gravity and update particles
-        sf::Vector2f gravity_force(0, GRAVITY);
+        // Update the particles
         for (auto& particle : particles) {
-            particle.apply_force(gravity_force);
             particle.update(TIME_STEP);
             particle.constraint_to_bounds(WIDTH, HEIGHT);
         }
