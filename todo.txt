@@ -3,5 +3,5 @@
 - Add a reset buttom
 - Add more interactivity: the possibility to add constraints / points at run-time, as well as the chance to pin points at run-time
 - Investigate how to make the physics simulation more realistic, starting from energy dissipation, then more advanced simulation techniques
-- Bug / unphysical results when two constraints overlap (traingle collpase)
+- Bug / unphysical results when two constraints overlap (traingle collpase) -> probably the only way to deal with this is to prevent collisions
 - Experiment with 3D?
