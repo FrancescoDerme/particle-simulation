@@ -1,9 +1,9 @@
-- Make the window fork with F11
+- Make the window work with F11
+- Decouple physical position from graphical position (problems: convert mouse position back to physical, don't render what's not visible)
 - Decouple physics from lag
-- Add a reset buttom
-- Add more interactivity: the possibility to add constraints / points at run-time, as well as the chance to pin points at run-time and the possibility to move the cloth by hand and eventually tear it apart
-- Investigate how to make the physics simulation more realistic, starting from energy dissipation / fiction, then more advanced simulation techniques
-- Bug / unphysical results when two constraints overlap (traingle collpase) -> probably the only way to deal with this is to prevent collisions
-- Experiment with 3D?
-- wind
-- solid object to interact with the cloth
+- Interactivity: reset button, add constraints / points at run-time, pin points at run-time, move the cloth by hand and eventually tear it apart
+- Investigate how to make the physics simulation more realistic, starting from energy dissipation / friction, then more advanced simulation techniques
+- Bug / unphysical results when two constraints overlap (traingle collpase) -> probably the only way to deal with this is to handle collisions?
+- Experiment with 3D? If so try templating the dimension
+- Wind
+- Solid objects to interact with the cloth
