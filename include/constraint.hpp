@@ -25,19 +25,19 @@ class Constraint {
         return (current_length - initial_length) / initial_length;
     }
 
-    void satisfy() {
-        if (!is_active) return;
+    float satisfy() {
+        if (!is_active) return 0.0;
 
         float p1_mass = p1->is_pinned ? 0.0f : 1.0f;
         float p2_mass = p2->is_pinned ? 0.0f : 1.0f;
         float mass_sum = p1_mass + p2_mass;
-        if (mass_sum == 0.0f) return;
+        if (mass_sum == 0.0f) return 0.0;
 
         sf::Vector2f delta = p2->position - p1->position;
         float current_length = std::hypot(delta.x, delta.y);
-        if (current_length < EPS) return;
-
         float diff = current_length - initial_length;
+        if (current_length < EPS) return std::abs(diff);
+
         sf::Vector2f correction =
             delta / current_length * diff * STIFFNESS;
 
@@ -45,6 +45,8 @@ class Constraint {
             p1->position += correction * (p1_mass / mass_sum);
         if (!p2->is_pinned)
             p2->position -= correction * (p2_mass / mass_sum);
+
+        return std::abs(diff);
     }
 
     void deactivate() { is_active = false; }

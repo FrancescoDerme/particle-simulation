@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+#include "SFML/Graphics/Rect.hpp"
 #include "constants.hpp"
 #include "constraint.hpp"
 #include "input_handler.hpp"
@@ -20,15 +21,18 @@ int main() {
         return -1;
     }
 
-    // Setup FPS text
-    sf::Text fpsText(font);
+    // Setup text
+    sf::Text fpsText(font), iterationText(font);
     fpsText.setCharacterSize(36);
+    iterationText.setCharacterSize(36);
     fpsText.setPosition({10.0f, 10.0f});
+    iterationText.setPosition({10.0f, 50.0f});
     fpsText.setFillColor(sf::Color::White);
+    iterationText.setFillColor(sf::Color::White);
 
     sf::Clock clock;
     float timer = 0.0f;
-    std::size_t frameCounter = 0;
+    std::size_t frameCounter = 0, iterationCounter = 0;
 
     std::vector<Particle> particles;
     particles.reserve(ROW * COL);
@@ -38,8 +42,8 @@ int main() {
     // Initialize particles
     for (std::size_t row = 0; row < ROW; ++row) {
         for (std::size_t col = 0; col < COL; ++col) {
-            float x = col * REST_DISTANCE + WIDTH / 3.0;
-            float y = row * REST_DISTANCE + HEIGHT / 3.0;
+            float x = col * REST_DISTANCE + STARTING_X;
+            float y = row * REST_DISTANCE + STARTING_Y;
             bool pinned = (row == 0);
             particles.emplace_back(x, y, GRAVITY_FORCE, pinned);
         }
@@ -72,6 +76,12 @@ int main() {
                 if (keyPressed->scancode ==
                     sf::Keyboard::Scancode::Escape)
                     window.close();
+            }
+            else if (event->is<sf::Event::Resized>()) {
+                // Update view to fix stretching
+                sf::View view({WIDTH / 2.0f, HEIGHT / 2.0f},
+                              sf::Vector2f{window.getSize()});
+                window.setView(view);
             }
             else if (const auto* mouseButtonPressed =
                          event->getIf<sf::Event::MouseButtonPressed>()) {
@@ -130,8 +140,16 @@ int main() {
         }
 
         // Apply constraints
-        for (std::size_t i = 0; i < 5; ++i)
-            for (auto& constraint : constraints) constraint.satisfy();
+        for (std::size_t i = 0; i < MAX_ITERATIONS; ++i) {
+            float max_violation = 0.0f;
+            for (auto& constraint : constraints) {
+                max_violation =
+                    std::max(max_violation, constraint.satisfy());
+            }
+
+            ++iterationCounter;
+            if (max_violation < ERROR_TOLERANCE) break;
+        }
 
         // Calculate time
         sf::Time elapsed = clock.restart();
@@ -140,13 +158,17 @@ int main() {
         timer += dt;
         frameCounter++;
 
-        if (timer >= 0.5f) {
+        if (timer >= TEXT_UPDATE_FREQUENCY) {
             float fps = frameCounter / timer;
+            float cips = iterationCounter / timer;
             fpsText.setString("FPS: " +
                               std::to_string(static_cast<int>(fps)));
+            iterationText.setString(
+                "CIPS: " + std::to_string(static_cast<int>(cips)));
 
             timer = 0.0f;
             frameCounter = 0;
+            iterationCounter = 0;
         }
 
         // Rendering
@@ -180,6 +202,7 @@ int main() {
 
         window.draw(constraintLines);
         window.draw(fpsText);
+        window.draw(iterationText);
         window.display();
     }
 
