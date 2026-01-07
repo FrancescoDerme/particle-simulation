@@ -20,11 +20,11 @@ constexpr sf::Vector2f GRAVITY_FORCE(0, GRAVITY);
 // Simulation
 constexpr float EPS = 0.000001f;
 constexpr float TIME_STEP = 0.1f;
-constexpr std::size_t MAX_ITERATIONS = 100;
-constexpr float ERROR_TOLERANCE = 0.001f;
+constexpr std::size_t MAX_ITERATIONS = 200;
+constexpr float ERROR_TOLERANCE = 0.01f;
 
 // Setup
-constexpr std::size_t ROW = 30;
+constexpr std::size_t ROW = 20;
 constexpr std::size_t COL = 10;
 constexpr float REST_DISTANCE = 10.0f;
 constexpr float STARTING_X = WIDTH / 2.0 - COL * REST_DISTANCE / 2.0;

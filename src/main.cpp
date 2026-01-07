@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 
-#include "SFML/Graphics/Rect.hpp"
 #include "constants.hpp"
 #include "constraint.hpp"
 #include "input_handler.hpp"
@@ -22,16 +21,19 @@ int main() {
     }
 
     // Setup text
-    sf::Text fpsText(font), iterationText(font);
+    sf::Text fpsText(font), iterationText(font), errorText(font);
     fpsText.setCharacterSize(36);
     iterationText.setCharacterSize(36);
+    errorText.setCharacterSize(36);
     fpsText.setPosition({10.0f, 10.0f});
     iterationText.setPosition({10.0f, 50.0f});
+    errorText.setPosition({10.0f, 90.0f});
     fpsText.setFillColor(sf::Color::White);
     iterationText.setFillColor(sf::Color::White);
+    errorText.setFillColor(sf::Color::White);
 
     sf::Clock clock;
-    float timer = 0.0f;
+    float timer = 0.0f, max_accepted_violation = 0.0f;
     std::size_t frameCounter = 0, iterationCounter = 0;
 
     std::vector<Particle> particles;
@@ -140,8 +142,9 @@ int main() {
         }
 
         // Apply constraints
+        float max_violation;
         for (std::size_t i = 0; i < MAX_ITERATIONS; ++i) {
-            float max_violation = 0.0f;
+            max_violation = 0.0f;
             for (auto& constraint : constraints) {
                 max_violation =
                     std::max(max_violation, constraint.satisfy());
@@ -150,6 +153,9 @@ int main() {
             ++iterationCounter;
             if (max_violation < ERROR_TOLERANCE) break;
         }
+
+        max_accepted_violation =
+            std::max(max_accepted_violation, max_violation);
 
         // Calculate time
         sf::Time elapsed = clock.restart();
@@ -163,8 +169,12 @@ int main() {
             float cips = iterationCounter / timer;
             fpsText.setString("FPS: " +
                               std::to_string(static_cast<int>(fps)));
+
             iterationText.setString(
                 "CIPS: " + std::to_string(static_cast<int>(cips)));
+
+            errorText.setString("MAE: " +
+                                std::to_string(max_accepted_violation));
 
             timer = 0.0f;
             frameCounter = 0;
@@ -203,6 +213,7 @@ int main() {
         window.draw(constraintLines);
         window.draw(fpsText);
         window.draw(iterationText);
+        window.draw(errorText);
         window.display();
     }
 
