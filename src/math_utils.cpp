@@ -42,30 +42,4 @@ float point_to_segment_distance(const float px, const float py,
     }
 }
 
-sf::Vector2f lerp(const sf::Vector2f start, const sf::Vector2f end,
-                  float t) {
-    t = std::clamp(t, 0.0f, 1.0f);
-
-    float x = start.x + (end.x - start.x) * t;
-    float y = start.y + (end.y - start.y) * t;
-
-    return sf::Vector2f{x, y};
-}
-
-sf::Color lerpColor(const sf::Color& start, const sf::Color& end,
-                    float t) {
-    t = std::clamp(t, 0.0f, 1.0f);
-
-    std::uint8_t r =
-        static_cast<std::uint8_t>(start.r + (end.r - start.r) * t);
-    std::uint8_t g =
-        static_cast<std::uint8_t>(start.g + (end.g - start.g) * t);
-    std::uint8_t b =
-        static_cast<std::uint8_t>(start.b + (end.b - start.b) * t);
-    std::uint8_t a =
-        static_cast<std::uint8_t>(start.a + (end.a - start.a) * t);
-
-    return sf::Color(r, g, b, a);
-}
-
 }  // namespace math_utils

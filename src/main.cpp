@@ -212,9 +212,10 @@ int main() {
             }
 
             // Calculate strain color
-            float t = 35.0f * std::abs(constraint.compute_strain());
-            sf::Color strain_color = math_utils::lerpColor(
-                sf::Color::White, sf::Color::Red, t);
+            float t = STRAIN_COLOR_MULTIPLIER *
+                      std::abs(constraint.compute_strain());
+            sf::Color strain_color =
+                math_utils::lerp(sf::Color::White, sf::Color::Red, t);
 
             sf::Vector2f v1 =
                 math_utils::lerp(constraint.p1->previous_position,

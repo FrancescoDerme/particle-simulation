@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <constants.hpp>
+#include <math_utils.hpp>
 
 class Particle {
    public:
@@ -41,22 +42,34 @@ class Particle {
         // Verlet intehration: r_(n+1) = 2r_n - r_(n-1) + a_n * dt^2
         sf::Vector2f velocity = position - previous_position;
         previous_position = position;
-        position += velocity +
+        position += velocity * DAMPING +
                     (persistent_acceleration + temporary_acceleration) *
                         TIME_PER_FRAME_SEC * TIME_PER_FRAME_SEC;
         temporary_acceleration = sf::Vector2f(0, 0);
     }
 
     void constraint_to_bounds(float width, float height) {
-        if (position.x < 0)
+        if (position.x < 0) {
             position.x = 0;
-        else if (position.x > width)
+            previous_position.y = math_utils::lerp(
+                previous_position.y, position.y, WALL_FRICTION);
+        }
+        else if (position.x > width) {
             position.x = width;
+            previous_position.y = math_utils::lerp(
+                previous_position.y, position.y, WALL_FRICTION);
+        }
 
-        if (position.y < 0)
+        if (position.y < 0) {
             position.y = 0;
-        else if (position.y > height)
+            previous_position.x = math_utils::lerp(
+                previous_position.x, position.x, WALL_FRICTION);
+        }
+        else if (position.y > height) {
             position.y = height;
+            previous_position.x = math_utils::lerp(
+                previous_position.x, position.x, WALL_FRICTION);
+        }
     }
 };
 
