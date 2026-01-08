@@ -22,7 +22,7 @@ int main() {
 
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
-    float timer = 0.0f, max_accepted_violation = 0.0f;
+    float timer = 0.0f, max_pixels_error = 0.0f;
     std::size_t frameCounter = 0, iterationCounter = 0;
 
     std::vector<Particle> particles;
@@ -150,20 +150,20 @@ int main() {
             }
 
             // Apply constraints
-            float max_violation;
+            float max_pixels_error_it;
             for (std::size_t i = 0; i < MAX_ITERATIONS; ++i) {
-                max_violation = 0.0f;
+                max_pixels_error_it = 0.0f;
                 for (auto& constraint : constraints) {
-                    max_violation =
-                        std::max(max_violation, constraint.satisfy());
+                    max_pixels_error_it = std::max(max_pixels_error_it,
+                                                   constraint.satisfy());
                 }
 
                 ++iterationCounter;
-                if (max_violation < ERROR_TOLERANCE) break;
+                if (max_pixels_error_it < ERROR_TOLERANCE_PIXELS) break;
             }
 
-            max_accepted_violation =
-                std::max(max_accepted_violation, max_violation);
+            max_pixels_error =
+                std::max(max_pixels_error, max_pixels_error_it);
 
             timeSinceLastUpdate -= TIME_PER_FRAME;
         }
@@ -174,7 +174,7 @@ int main() {
             hud.update(StatusLine::FPS, "FPS",
                        static_cast<std::size_t>(fps));
             hud.update(StatusLine::Iterations, "CIPS", cips);
-            hud.update(StatusLine::Error, "MAE", max_accepted_violation),
+            hud.update(StatusLine::Error, "MPE", max_pixels_error),
 
                 timer = 0.0f;
             frameCounter = 0;

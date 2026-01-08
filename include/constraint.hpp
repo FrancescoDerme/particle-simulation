@@ -38,8 +38,23 @@ class Constraint {
         float diff = current_length - initial_length;
         if (current_length < EPS) return std::abs(diff);
 
+        /*
+        if (current_length < CRITICAL_LENGTH) {
+            float fix =
+                (current_length - CRITICAL_LENGTH) / current_length;
+            sf::Vector2f correction = delta * fix;
+
+            if (!p1->is_pinned)
+                p1->position += correction * (p1_mass / mass_sum);
+            if (!p2->is_pinned)
+                p2->position -= correction * (p2_mass / mass_sum);
+
+            return ERROR_TOLERANCE_PIXELS + 1.0f;
+        };
+        */
+
         sf::Vector2f correction =
-            delta / current_length * diff * STIFFNESS;
+            delta * (diff / current_length * STIFFNESS);
 
         if (!p1->is_pinned)
             p1->position += correction * (p1_mass / mass_sum);
