@@ -1,7 +1,6 @@
 - Make the window work with F11
-- Decouple physics from lag
+- Zoom (problems: convert mouse position back to physical, don't render what's not visible)
 - Cut multiple overlapping constraints at the same time, to find relevant constraints, use spacial hashing instead of iterating over all
-- Decouple physical position from graphical position (problems: convert mouse position back to physical, don't render what's not visible)
 - Actually add graphics (points and constraints should be hidden)
 - Interactivity: reset button, add constraints / points at run-time, pin points at run-time, move the cloth by hand and eventually tear it apart
 - Investigate how to make the physics simulation more realistic, starting from energy dissipation / friction, then more advanced simulation techniques
