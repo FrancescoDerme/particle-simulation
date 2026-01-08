@@ -7,29 +7,18 @@
 #include "input_handler.hpp"
 #include "math_utils.hpp"
 #include "particle.hpp"
+#include "statushud.hpp"
 
 int main() {
     sf::Vector2u window_dimensions{WIDTH, HEIGHT};
     sf::RenderWindow window(sf::VideoMode(window_dimensions),
                             "Cloth simulation");
 
-    // Load font
-    sf::Font font;
-    if (!font.openFromFile("../resources/arial-font/arial.ttf")) {
+    // Setup text HUD
+    StatusHUD hud;
+    if (!hud.init("../resources/arial-font/arial.ttf")) {
         return -1;
     }
-
-    // Setup text
-    sf::Text fpsText(font), iterationText(font), errorText(font);
-    fpsText.setCharacterSize(36);
-    iterationText.setCharacterSize(36);
-    errorText.setCharacterSize(36);
-    fpsText.setPosition({10.0f, 10.0f});
-    iterationText.setPosition({10.0f, 50.0f});
-    errorText.setPosition({10.0f, 90.0f});
-    fpsText.setFillColor(sf::Color::White);
-    iterationText.setFillColor(sf::Color::White);
-    errorText.setFillColor(sf::Color::White);
 
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
@@ -182,16 +171,12 @@ int main() {
         if (timer >= TEXT_UPDATE_FREQUENCY) {
             float fps = frameCounter / timer;
             float cips = iterationCounter / timer;
-            fpsText.setString("FPS: " +
-                              std::to_string(static_cast<int>(fps)));
+            hud.update(StatusLine::FPS, "FPS",
+                       static_cast<std::size_t>(fps));
+            hud.update(StatusLine::Iterations, "CIPS", cips);
+            hud.update(StatusLine::Error, "MAE", max_accepted_violation),
 
-            iterationText.setString(
-                "CIPS: " + std::to_string(static_cast<int>(cips)));
-
-            errorText.setString("MAE: " +
-                                std::to_string(max_accepted_violation));
-
-            timer = 0.0f;
+                timer = 0.0f;
             frameCounter = 0;
             iterationCounter = 0;
         }
@@ -247,9 +232,7 @@ int main() {
         }
 
         window.draw(constraintLines);
-        window.draw(fpsText);
-        window.draw(iterationText);
-        window.draw(errorText);
+        hud.draw(window);
         window.display();
     }
 

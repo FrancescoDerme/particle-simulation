@@ -7,6 +7,9 @@
 constexpr std::size_t WIDTH = 1080;
 constexpr std::size_t HEIGHT = 720;
 constexpr float TEXT_UPDATE_FREQUENCY = 0.5f;
+constexpr float TEXT_START_X = 10.0f;
+constexpr float TEXT_START_Y = 10.0f;
+constexpr float TEXT_SPACING = 40.0f;
 
 // Interactivity
 constexpr float CLICK_TOLERANCE = 5.0f;
@@ -22,7 +25,7 @@ constexpr float TIME_PER_FRAME_SEC = TIME_PER_FRAME.asSeconds();
 // Simulation
 constexpr float EPS = 0.000001f;
 constexpr float MAX_TIME_STEP = 0.25f;
-constexpr std::size_t MAX_ITERATIONS = 200;
+constexpr std::size_t MAX_ITERATIONS = 300;
 constexpr float ERROR_TOLERANCE = 0.01f;
 
 // Setup
