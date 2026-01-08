@@ -2,8 +2,7 @@
 #define PARTICLE_HPP
 
 #include <SFML/Graphics.hpp>
-
-#include "SFML/System/Vector2.hpp"
+#include <constants.hpp>
 
 class Particle {
    public:
@@ -36,7 +35,7 @@ class Particle {
         persistent_acceleration += force;
     }
 
-    void update(float time_step) {
+    void update() {
         if (is_pinned) return;
 
         // Verlet intehration: r_(n+1) = 2r_n - r_(n-1) + a_n * dt^2
@@ -44,7 +43,7 @@ class Particle {
         previous_position = position;
         position += velocity +
                     (persistent_acceleration + temporary_acceleration) *
-                        time_step * time_step;
+                        TIME_PER_FRAME_SEC * TIME_PER_FRAME_SEC;
         temporary_acceleration = sf::Vector2f(0, 0);
     }
 

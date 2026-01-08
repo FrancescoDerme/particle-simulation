@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstdint>
 
+#include "SFML/System/Vector2.hpp"
+
 namespace math_utils {
 
 float point_to_segment_distance(const float px, const float py,
@@ -38,6 +40,16 @@ float point_to_segment_distance(const float px, const float py,
         return std::sqrt((px - proj_x) * (px - proj_x) +
                          (py - proj_y) * (py - proj_y));
     }
+}
+
+sf::Vector2f lerp(const sf::Vector2f start, const sf::Vector2f end,
+                  float t) {
+    t = std::clamp(t, 0.0f, 1.0f);
+
+    float x = start.x + (end.x - start.x) * t;
+    float y = start.y + (end.y - start.y) * t;
+
+    return sf::Vector2f{x, y};
 }
 
 sf::Color lerpColor(const sf::Color& start, const sf::Color& end,

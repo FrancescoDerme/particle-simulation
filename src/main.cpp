@@ -12,7 +12,6 @@ int main() {
     sf::Vector2u window_dimensions{WIDTH, HEIGHT};
     sf::RenderWindow window(sf::VideoMode(window_dimensions),
                             "Cloth simulation");
-    window.setFramerateLimit(60);
 
     // Load font
     sf::Font font;
@@ -33,6 +32,7 @@ int main() {
     errorText.setFillColor(sf::Color::White);
 
     sf::Clock clock;
+    sf::Time timeSinceLastUpdate = sf::Time::Zero;
     float timer = 0.0f, max_accepted_violation = 0.0f;
     std::size_t frameCounter = 0, iterationCounter = 0;
 
@@ -65,6 +65,10 @@ int main() {
                     &particles[(row + 1) * COL + col]);
         }
     }
+
+    sf::VertexArray particlePoints(sf::PrimitiveType::Points, ROW * COL);
+    sf::VertexArray constraintLines(sf::PrimitiveType::Lines,
+                                    constraints.size() * 2);
 
     bool holding_left_click = false, first_frame_of_click = false;
     sf::Vector2f lastMousePos, currentMousePos;
@@ -135,34 +139,45 @@ int main() {
             lastMousePos = currentMousePos;
         }
 
-        // Update the particles
-        for (auto& particle : particles) {
-            particle.update(TIME_STEP);
-            particle.constraint_to_bounds(WIDTH, HEIGHT);
+        // Calculate delta time
+        sf::Time dt = clock.restart();
+        timeSinceLastUpdate += dt;
+
+        // Clamp large spikes
+        // If the game freezes for too much time, don't try to simulate
+        // physics all at once
+        if (timeSinceLastUpdate > sf::seconds(MAX_TIME_STEP)) {
+            timeSinceLastUpdate = sf::seconds(MAX_TIME_STEP);
         }
 
-        // Apply constraints
-        float max_violation;
-        for (std::size_t i = 0; i < MAX_ITERATIONS; ++i) {
-            max_violation = 0.0f;
-            for (auto& constraint : constraints) {
-                max_violation =
-                    std::max(max_violation, constraint.satisfy());
+        timer += dt.asSeconds();
+        frameCounter++;
+
+        while (timeSinceLastUpdate >= TIME_PER_FRAME) {
+            // Update the particles
+            for (auto& particle : particles) {
+                particle.update();
+                particle.constraint_to_bounds(WIDTH, HEIGHT);
             }
 
-            ++iterationCounter;
-            if (max_violation < ERROR_TOLERANCE) break;
+            // Apply constraints
+            float max_violation;
+            for (std::size_t i = 0; i < MAX_ITERATIONS; ++i) {
+                max_violation = 0.0f;
+                for (auto& constraint : constraints) {
+                    max_violation =
+                        std::max(max_violation, constraint.satisfy());
+                }
+
+                ++iterationCounter;
+                if (max_violation < ERROR_TOLERANCE) break;
+            }
+
+            max_accepted_violation =
+                std::max(max_accepted_violation, max_violation);
+
+            timeSinceLastUpdate -= TIME_PER_FRAME;
         }
-
-        max_accepted_violation =
-            std::max(max_accepted_violation, max_violation);
-
-        // Calculate time
-        sf::Time elapsed = clock.restart();
-        float dt = elapsed.asSeconds();
-
-        timer += dt;
-        frameCounter++;
 
         if (timer >= TEXT_UPDATE_FREQUENCY) {
             float fps = frameCounter / timer;
@@ -182,32 +197,53 @@ int main() {
         }
 
         // Rendering
+        float alpha =
+            timeSinceLastUpdate.asSeconds() / TIME_PER_FRAME_SEC;
+
         // Clear the window with black color
         window.clear(sf::Color::Black);
 
         // Draw particles as points
-        sf::VertexArray particlePoints(sf::PrimitiveType::Points);
-        for (const auto& particle : particles) {
-            particlePoints.append(
-                sf::Vertex(particle.position, sf::Color::White));
+        for (std::size_t i = 0; i < particles.size(); ++i) {
+            sf::Vector2f visualPos =
+                math_utils::lerp(particles[i].previous_position,
+                                 particles[i].position, alpha);
+
+            particlePoints[i].position = visualPos;
+            particlePoints[i].color = sf::Color::White;
         }
 
         window.draw(particlePoints);
 
         // Draw constraints as lines
-        sf::VertexArray constraintLines(sf::PrimitiveType::Lines);
+        std::size_t lineIdx = 0;
         for (const auto& constraint : constraints) {
-            if (!constraint.is_active) continue;
+            if (!constraint.is_active) {
+                constraintLines[lineIdx].color = sf::Color::Transparent;
+                constraintLines[lineIdx + 1].color =
+                    sf::Color::Transparent;
+                lineIdx += 2;
+                continue;
+            }
 
             // Calculate strain color
             float t = 35.0f * std::abs(constraint.compute_strain());
             sf::Color strain_color = math_utils::lerpColor(
                 sf::Color::White, sf::Color::Red, t);
 
-            constraintLines.append(
-                sf::Vertex(constraint.p1->position, strain_color));
-            constraintLines.append(
-                sf::Vertex(constraint.p2->position, strain_color));
+            sf::Vector2f v1 =
+                math_utils::lerp(constraint.p1->previous_position,
+                                 constraint.p1->position, alpha);
+            sf::Vector2f v2 =
+                math_utils::lerp(constraint.p2->previous_position,
+                                 constraint.p2->position, alpha);
+
+            constraintLines[lineIdx].position = v1;
+            constraintLines[lineIdx].color = strain_color;
+            constraintLines[lineIdx + 1].position = v2;
+            constraintLines[lineIdx + 1].color = strain_color;
+
+            lineIdx += 2;
         }
 
         window.draw(constraintLines);
