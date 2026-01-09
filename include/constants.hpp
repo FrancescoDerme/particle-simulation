@@ -11,6 +11,7 @@ constexpr float TEXT_START_X = 10.0f;
 constexpr float TEXT_START_Y = 10.0f;
 constexpr float TEXT_SPACING = 40.0f;
 constexpr float STRAIN_COLOR_MULTIPLIER = 15.0f;
+constexpr float SECONDARY_CONSTRAINT_OPACITY = 0.75f;
 
 // Interactivity
 constexpr float CLICK_TOLERANCE = 5.0f;
@@ -18,6 +19,7 @@ constexpr float STEP_SIZE = CLICK_TOLERANCE * 0.9f;
 
 // Physics
 constexpr float STIFFNESS = 1.0f;
+constexpr float SECONDARY_STIFFNESS = 0.0001f;
 constexpr float GRAVITY = 1000.0f;
 constexpr sf::Vector2f GRAVITY_FORCE(0, GRAVITY);
 constexpr float DAMPING = 0.995f;
@@ -33,7 +35,7 @@ constexpr float STARTING_Y = HEIGHT / 2.0 - ROW * REST_DISTANCE / 2.0;
 // Simulation
 constexpr float EPS = 0.000001f;
 constexpr float MAX_TIME_STEP = 0.25f;
-constexpr std::size_t MAX_ITERATIONS = 100;
+constexpr std::size_t MAX_ITERATIONS = 10;
 constexpr float ERROR_TOLERANCE_PIXELS = 0.5f;
 constexpr sf::Time TIME_PER_FRAME = sf::seconds(1.f / 60.f);
 constexpr float TIME_PER_FRAME_SEC = TIME_PER_FRAME.asSeconds();

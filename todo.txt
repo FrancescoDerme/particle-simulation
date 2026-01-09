@@ -1,11 +1,13 @@
 - Make the window work with F11
-- Zoom (problems: convert mouse position back to physical, don't render what's not visible)
+- Zoom (problems: convert mouse position back to physical space, don't render what's not visible)
 - Cut multiple overlapping constraints at the same time, to find relevant constraints, use spacial hashing instead of iterating over all
-- Actually add graphics (points and constraints should be hidden)
+- Rework how constraints work: they should be divided into interactable and non-interactable structures and organized as quads inside of a mesh class in such a way that the perimeter can be but but the diagonals can't. The quad should point at its members and the constraints should point at their quad(s). After this the input handling can be optimised to only look at interactable contraints (and the others can be cut indirectly). Constraint-rendering structures should be reworked in the main loop to make rendering faster (without the need to render transparent constraints or to compute alpha channel values each time or to store doube the number of constraints).
+- Investigate why the simulation is unstable at the beginning 
 - Interactivity: reset button, add constraints / points at run-time, pin points at run-time, move the cloth by hand and eventually tear it apart
-- Investigate how to make the physics simulation more realistic, starting from energy dissipation / friction, then more advanced simulation techniques
+- Investigate how to make the physics simulation more realistic, starting from reasonable constants, then more advanced simulation techniques
 - Wind and solid objects to interact with the cloth
 
 Advanced
 - Hierarchical multi-grid to achieve convergence faster (requires using multiple meshes at different resolutions and synchronizing them)
-- Experiment with 3D? If so try templating the dimension
+- Actually add graphics (points and constraints should be hidden)
+- 3D? Templating the dimension?

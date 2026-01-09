@@ -16,14 +16,14 @@ T lerp(const T& start, const T& end, float t) {
 }
 
 inline sf::Color lerp(const sf::Color& start, const sf::Color& end,
-                      float t) {
+                      float t, float alpha) {
     t = std::clamp(t, 0.0f, 1.0f);
 
     return sf::Color(
         static_cast<std::uint8_t>(start.r + (end.r - start.r) * t),
         static_cast<std::uint8_t>(start.g + (end.g - start.g) * t),
         static_cast<std::uint8_t>(start.b + (end.b - start.b) * t),
-        static_cast<std::uint8_t>(start.a + (end.a - start.a) * t));
+        static_cast<std::uint8_t>(alpha));
 }
 
 }  // namespace math_utils

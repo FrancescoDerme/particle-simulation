@@ -46,12 +46,28 @@ int main() {
             // Horizontal constraint
             if (col < COL - 1)
                 constraints.emplace_back(&particles[row * COL + col],
-                                         &particles[row * COL + col + 1]);
+                                         &particles[row * COL + col + 1],
+                                         STIFFNESS);
+
             // Vertical constraint
             if (row < ROW - 1)
                 constraints.emplace_back(
                     &particles[row * COL + col],
-                    &particles[(row + 1) * COL + col]);
+                    &particles[(row + 1) * COL + col], STIFFNESS);
+
+            // Principal diagonal constraint
+            if (row < ROW - 1 && col < COL - 1)
+                constraints.emplace_back(
+                    &particles[row * COL + col],
+                    &particles[(row + 1) * COL + col + 1],
+                    SECONDARY_STIFFNESS, false);
+
+            // Secondary diagonal constraint
+            if (row < ROW - 1 && col > 0)
+                constraints.emplace_back(
+                    &particles[row * COL + col],
+                    &particles[(row + 1) * COL + col - 1],
+                    SECONDARY_STIFFNESS, false);
         }
     }
 
@@ -214,8 +230,11 @@ int main() {
             // Calculate strain color
             float t = STRAIN_COLOR_MULTIPLIER *
                       std::abs(constraint.compute_strain());
-            sf::Color strain_color =
-                math_utils::lerp(sf::Color::White, sf::Color::Red, t);
+            sf::Color strain_color = math_utils::lerp(
+                sf::Color::White, sf::Color::Red, t,
+                255 * (constraint.is_interactable
+                           ? 1
+                           : SECONDARY_CONSTRAINT_OPACITY));
 
             sf::Vector2f v1 =
                 math_utils::lerp(constraint.p1->previous_position,
