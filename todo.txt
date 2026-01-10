@@ -1,5 +1,6 @@
 - Make the window work with F11
 - Zoom (problems: convert mouse position back to physical space, don't render what's not visible)
+- How about having different stiffness for dilation and contraction
 - Cut multiple overlapping constraints at the same time, to find relevant constraints, use spacial hashing (or kd-trees, or quad-trees) instead of iterating over all
 - Rework how constraints work: they should be divided into interactable and non-interactable structures and organized as quads inside of a mesh class in such a way that the perimeter can be but but the diagonals can't. The quad should point at its members and the constraints should point at their quad(s). After this the input handling can be optimised to only look at interactable contraints (and the others can be cut indirectly). Constraint-rendering structures should be reworked in the main loop to make rendering faster (without the need to render transparent constraints or to compute alpha channel values each time or to store doube the number of constraints).
 - Investigate why the simulation is unstable at the beginning 
