@@ -18,8 +18,10 @@ constexpr float CLICK_TOLERANCE = 5.0f;
 constexpr float STEP_SIZE = CLICK_TOLERANCE * 0.9f;
 
 // Physics
-constexpr float STIFFNESS = 1.0f;
-constexpr float SECONDARY_STIFFNESS = 0.0001f;
+constexpr float DILATION_STIFFNESS = 1.0f;
+constexpr float CONTRACTION_STIFFNESS = 1.0f;
+constexpr float SECONDARY_DILATION_STIFFNESS = 0.0001f;
+constexpr float SECONDARY_CONTRACTION_STIFFNESS = 0.0001f;
 constexpr float GRAVITY = 1000.0f;
 constexpr sf::Vector2f GRAVITY_FORCE(0, GRAVITY);
 constexpr float DAMPING = 0.995f;

@@ -46,15 +46,15 @@ int main() {
             // Horizontal constraint
             if (col < COL - 1)
                 constraints.emplace_back(&particles[row * COL + col],
-                                         &particles[row * COL + col + 1],
-                                         STIFFNESS);
+                                         &particles[row * COL + col + 1]);
 
             // Vertical constraint
             if (row < ROW - 1)
                 constraints.emplace_back(
                     &particles[row * COL + col],
-                    &particles[(row + 1) * COL + col], STIFFNESS);
+                    &particles[(row + 1) * COL + col]);
 
+            /*
             // Principal diagonal constraint
             if (row < ROW - 1 && col < COL - 1)
                 constraints.emplace_back(
@@ -68,6 +68,7 @@ int main() {
                     &particles[row * COL + col],
                     &particles[(row + 1) * COL + col - 1],
                     SECONDARY_STIFFNESS, false);
+            */
         }
     }
 
@@ -80,19 +81,20 @@ int main() {
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>())
+            if (event->is<sf::Event::Closed>()) {
                 window.close();
-            else if (const auto* keyPressed =
-                         event->getIf<sf::Event::KeyPressed>()) {
-                if (keyPressed->scancode ==
-                    sf::Keyboard::Scancode::Escape)
-                    window.close();
             }
             else if (event->is<sf::Event::Resized>()) {
                 // Update view to fix stretching
                 sf::View view({WIDTH / 2.0f, HEIGHT / 2.0f},
                               sf::Vector2f{window.getSize()});
                 window.setView(view);
+            }
+            else if (const auto* keyPressed =
+                         event->getIf<sf::Event::KeyPressed>()) {
+                if (keyPressed->scancode ==
+                    sf::Keyboard::Scancode::Escape)
+                    window.close();
             }
             else if (const auto* mouseButtonPressed =
                          event->getIf<sf::Event::MouseButtonPressed>()) {
