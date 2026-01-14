@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+#include "SFML/Window/Keyboard.hpp"
+#include "SFML/Window/WindowEnums.hpp"
 #include "constants.hpp"
 #include "constraint.hpp"
 #include "input_handler.hpp"
@@ -12,7 +14,9 @@
 int main() {
     sf::Vector2u window_dimensions{WIDTH, HEIGHT};
     sf::RenderWindow window(sf::VideoMode(window_dimensions),
-                            "Cloth simulation");
+                            "Cloth simulation", sf::Style::Default,
+                            sf::State::Windowed);
+    bool isFullscreen = false;
 
     // Setup text HUD
     StatusHUD hud;
@@ -93,8 +97,26 @@ int main() {
             else if (const auto* keyPressed =
                          event->getIf<sf::Event::KeyPressed>()) {
                 if (keyPressed->scancode ==
-                    sf::Keyboard::Scancode::Escape)
+                    sf::Keyboard::Scancode::Escape) {
                     window.close();
+                }
+                else if (keyPressed->scancode ==
+                         sf::Keyboard::Scancode::F11) {
+                    if (isFullscreen) {
+                        window.create(sf::VideoMode(window_dimensions),
+                                      "Cloth simulation",
+                                      sf::Style::Default,
+                                      sf::State::Windowed);
+                    }
+                    else {
+                        window.create(sf::VideoMode::getDesktopMode(),
+                                      "Cloth simulation",
+                                      sf::Style::Default,
+                                      sf::State::Fullscreen);
+                    }
+
+                    isFullscreen = !isFullscreen;
+                }
             }
             else if (const auto* mouseButtonPressed =
                          event->getIf<sf::Event::MouseButtonPressed>()) {

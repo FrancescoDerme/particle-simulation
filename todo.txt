@@ -1,4 +1,4 @@
-- Make the window work with F11
+- F11 currently destroys the window and creates a new one -> need to work with OS-specific APIs to make it better
 - Zoom (problems: convert mouse position back to physical space, don't render what's not visible)
 - Cut multiple overlapping constraints at the same time, to find relevant constraints, use spacial hashing (or kd-trees, or quad-trees) instead of iterating over all
 - Big refactor following the simulation + editor style
