@@ -9,15 +9,21 @@
 class Constraint {
    public:
     Particle *p1, *p2;
-    float initial_length;
-    bool is_active;
+    float initial_length, contraction_stiffness, dilation_stiffness;
+    bool is_active, is_interactable;
 
-    Constraint(Particle* p1, Particle* p2, bool is_active = true)
+    Constraint(Particle* p1, Particle* p2,
+               float contraction_stiffness = CONTRACTION_STIFFNESS,
+               float dilation_stiffness = DILATION_STIFFNESS,
+               bool is_interactable = true, bool is_active = true)
         : p1{p1},
           p2{p2},
+          contraction_stiffness{contraction_stiffness},
+          dilation_stiffness{dilation_stiffness},
+          is_interactable{is_interactable},
+          is_active{is_active},
           initial_length{std::hypot(p2->position.x - p1->position.x,
-                                    p2->position.y - p1->position.y)},
-          is_active{is_active} {};
+                                    p2->position.y - p1->position.y)} {};
 
     float compute_strain() const {
         sf::Vector2f delta = p2->position - p1->position;
@@ -38,23 +44,11 @@ class Constraint {
         float diff = current_length - initial_length;
         if (current_length < EPS) return std::abs(diff);
 
-        /*
-        if (current_length < CRITICAL_LENGTH) {
-            float fix =
-                (current_length - CRITICAL_LENGTH) / current_length;
-            sf::Vector2f correction = delta * fix;
-
-            if (!p1->is_pinned)
-                p1->position += correction * (p1_mass / mass_sum);
-            if (!p2->is_pinned)
-                p2->position -= correction * (p2_mass / mass_sum);
-
-            return ERROR_TOLERANCE_PIXELS + 1.0f;
-        };
-        */
+        float effective_stiffness =
+            (diff > 0) ? dilation_stiffness : contraction_stiffness;
 
         sf::Vector2f correction =
-            delta * (diff / current_length * STIFFNESS);
+            delta * (diff / current_length * effective_stiffness);
 
         if (!p1->is_pinned)
             p1->position += correction * (p1_mass / mass_sum);
@@ -64,7 +58,9 @@ class Constraint {
         return std::abs(diff);
     }
 
-    void deactivate() { is_active = false; }
+    void deactivate() {
+        if (is_interactable) is_active = false;
+    }
 };
 
 #endif  // CONSTRAINT_HPP

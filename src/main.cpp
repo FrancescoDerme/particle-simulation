@@ -1,18 +1,18 @@
 #include <SFML/Graphics.hpp>
-#include <string>
-#include <vector>
 
 #include "constants.hpp"
 #include "constraint.hpp"
 #include "input_handler.hpp"
 #include "math_utils.hpp"
 #include "particle.hpp"
+#include "platform_utils.hpp"
 #include "statushud.hpp"
 
 int main() {
     sf::Vector2u window_dimensions{WIDTH, HEIGHT};
     sf::RenderWindow window(sf::VideoMode(window_dimensions),
-                            "Cloth simulation");
+                            "Cloth simulation", sf::Style::Default,
+                            sf::State::Windowed);
 
     // Setup text HUD
     StatusHUD hud;
@@ -47,11 +47,30 @@ int main() {
             if (col < COL - 1)
                 constraints.emplace_back(&particles[row * COL + col],
                                          &particles[row * COL + col + 1]);
+
             // Vertical constraint
             if (row < ROW - 1)
                 constraints.emplace_back(
                     &particles[row * COL + col],
                     &particles[(row + 1) * COL + col]);
+
+            /*
+            // Principal diagonal constraint
+            if (row < ROW - 1 && col < COL - 1)
+                constraints.emplace_back(
+                    &particles[row * COL + col],
+                    &particles[(row + 1) * COL + col + 1],
+                    SECONDARY_CONTRACTION_STIFFNESS,
+                    SECONDARY_DILATION_STIFFNESS, true);
+
+            // Secondary diagonal constraint
+            if (row < ROW - 1 && col > 0)
+                constraints.emplace_back(
+                    &particles[row * COL + col],
+                    &particles[(row + 1) * COL + col - 1],
+                    SECONDARY_CONTRACTION_STIFFNESS,
+                    SECONDARY_DILATION_STIFFNESS, true);
+            */
         }
     }
 
@@ -64,19 +83,25 @@ int main() {
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>())
+            if (event->is<sf::Event::Closed>()) {
                 window.close();
-            else if (const auto* keyPressed =
-                         event->getIf<sf::Event::KeyPressed>()) {
-                if (keyPressed->scancode ==
-                    sf::Keyboard::Scancode::Escape)
-                    window.close();
             }
             else if (event->is<sf::Event::Resized>()) {
                 // Update view to fix stretching
                 sf::View view({WIDTH / 2.0f, HEIGHT / 2.0f},
                               sf::Vector2f{window.getSize()});
                 window.setView(view);
+            }
+            else if (const auto* keyPressed =
+                         event->getIf<sf::Event::KeyPressed>()) {
+                if (keyPressed->scancode ==
+                    sf::Keyboard::Scancode::Escape) {
+                    window.close();
+                }
+                else if (keyPressed->scancode ==
+                         sf::Keyboard::Scancode::F11) {
+                    toggleFullscreen(window);
+                }
             }
             else if (const auto* mouseButtonPressed =
                          event->getIf<sf::Event::MouseButtonPressed>()) {
@@ -214,8 +239,11 @@ int main() {
             // Calculate strain color
             float t = STRAIN_COLOR_MULTIPLIER *
                       std::abs(constraint.compute_strain());
-            sf::Color strain_color =
-                math_utils::lerp(sf::Color::White, sf::Color::Red, t);
+            sf::Color strain_color = math_utils::lerp(
+                sf::Color::White, sf::Color::Red, t,
+                255 * (constraint.is_interactable
+                           ? 1
+                           : SECONDARY_CONSTRAINT_OPACITY));
 
             sf::Vector2f v1 =
                 math_utils::lerp(constraint.p1->previous_position,
