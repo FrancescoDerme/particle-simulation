@@ -4,9 +4,6 @@
 #include <SFML/Graphics.hpp>
 #include <constants.hpp>
 #include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
 
 enum class StatusLine { FPS, Iterations, Error, Count };
 

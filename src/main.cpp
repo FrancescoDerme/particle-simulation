@@ -1,14 +1,11 @@
 #include <SFML/Graphics.hpp>
-#include <string>
-#include <vector>
 
-#include "SFML/Window/Keyboard.hpp"
-#include "SFML/Window/WindowEnums.hpp"
 #include "constants.hpp"
 #include "constraint.hpp"
 #include "input_handler.hpp"
 #include "math_utils.hpp"
 #include "particle.hpp"
+#include "platform_utils.hpp"
 #include "statushud.hpp"
 
 int main() {
@@ -16,7 +13,6 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(window_dimensions),
                             "Cloth simulation", sf::Style::Default,
                             sf::State::Windowed);
-    bool isFullscreen = false;
 
     // Setup text HUD
     StatusHUD hud;
@@ -64,14 +60,16 @@ int main() {
                 constraints.emplace_back(
                     &particles[row * COL + col],
                     &particles[(row + 1) * COL + col + 1],
-                    SECONDARY_STIFFNESS, false);
+                    SECONDARY_CONTRACTION_STIFFNESS,
+                    SECONDARY_DILATION_STIFFNESS, true);
 
             // Secondary diagonal constraint
             if (row < ROW - 1 && col > 0)
                 constraints.emplace_back(
                     &particles[row * COL + col],
                     &particles[(row + 1) * COL + col - 1],
-                    SECONDARY_STIFFNESS, false);
+                    SECONDARY_CONTRACTION_STIFFNESS,
+                    SECONDARY_DILATION_STIFFNESS, true);
             */
         }
     }
@@ -102,20 +100,7 @@ int main() {
                 }
                 else if (keyPressed->scancode ==
                          sf::Keyboard::Scancode::F11) {
-                    if (isFullscreen) {
-                        window.create(sf::VideoMode(window_dimensions),
-                                      "Cloth simulation",
-                                      sf::Style::Default,
-                                      sf::State::Windowed);
-                    }
-                    else {
-                        window.create(sf::VideoMode::getDesktopMode(),
-                                      "Cloth simulation",
-                                      sf::Style::Default,
-                                      sf::State::Fullscreen);
-                    }
-
-                    isFullscreen = !isFullscreen;
+                    toggleFullscreen(window);
                 }
             }
             else if (const auto* mouseButtonPressed =

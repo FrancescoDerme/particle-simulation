@@ -2,7 +2,6 @@
 #define INPUT_HANDLER_HPP
 
 #include <SFML/Graphics.hpp>
-#include <vector>
 
 #include "constants.hpp"
 #include "constraint.hpp"
