@@ -1,10 +1,6 @@
 #include "math_utils.hpp"
 
-#include <algorithm>
 #include <cmath>
-#include <cstdint>
-
-#include "SFML/System/Vector2.hpp"
 
 namespace math_utils {
 

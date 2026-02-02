@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <ranges>
 
 #include "constants.hpp"
 #include "constraint.hpp"
@@ -7,6 +8,7 @@
 #include "particle.hpp"
 #include "platform_utils.hpp"
 #include "statushud.hpp"
+#include "warm_start.hpp"
 
 int main() {
     sf::Vector2u window_dimensions{WIDTH, HEIGHT};
@@ -16,7 +18,7 @@ int main() {
 
     // Setup text HUD
     StatusHUD hud;
-    if (!hud.init("../resources/arial-font/arial.ttf")) {
+    if (!hud.init(FONT.data())) {
         return -1;
     }
 
@@ -25,12 +27,10 @@ int main() {
     float timer = 0.0f, max_pixels_error = 0.0f;
     std::size_t frameCounter = 0, iterationCounter = 0;
 
+    // Initialize particles
     std::vector<Particle> particles;
     particles.reserve(ROW * COL);
 
-    std::vector<Constraint> constraints;
-
-    // Initialize particles
     for (std::size_t row = 0; row < ROW; ++row) {
         for (std::size_t col = 0; col < COL; ++col) {
             float x = col * REST_DISTANCE + STARTING_X;
@@ -41,6 +41,8 @@ int main() {
     }
 
     // Initialize constraints
+    std::vector<Constraint> constraints;
+
     for (std::size_t row = 0; row < ROW; ++row) {
         for (std::size_t col = 0; col < COL; ++col) {
             // Horizontal constraint
@@ -72,6 +74,37 @@ int main() {
                     SECONDARY_DILATION_STIFFNESS, true);
             */
         }
+    }
+
+    // Initialize positions from the warm start cache if available
+    bool needRebake = true;
+    fs::path cachePath = WARM_START_CACHE.data();
+
+    // Check if cache exists and is newer than the source code
+    if (fs::exists(cachePath)) {
+        auto cacheTime = fs::last_write_time(cachePath);
+        auto sourceTime = max(getLatestFolderTime(SOURCE_FOLDER.data()),
+                              getLatestFolderTime(INCLUDE_FOLDER.data()));
+
+        if (cacheTime >= sourceTime && loadWarmStart(particles))
+            needRebake = false;
+    }
+
+    if (needRebake) {
+        for (int i = 0; i < WARMUP_CYCLES * FRAMES_PER_SECOND; ++i) {
+            for (auto& particle : particles) {
+                particle.update(TIME_PER_FRAME_SEC);
+                particle.constraint_to_bounds(WIDTH, HEIGHT);
+            }
+
+            for (int j = 0; j < MAX_ITERATIONS; ++j) {
+                for (auto& constraint : constraints) constraint.satisfy();
+                for (auto& constraint : std::views::reverse(constraints))
+                    constraint.satisfy();
+            }
+        }
+
+        saveWarmStart(particles);
     }
 
     sf::VertexArray particlePoints(sf::PrimitiveType::Points, ROW * COL);
@@ -170,7 +203,7 @@ int main() {
         while (timeSinceLastUpdate >= TIME_PER_FRAME) {
             // Update the particles
             for (auto& particle : particles) {
-                particle.update();
+                particle.update(TIME_PER_FRAME_SEC);
                 particle.constraint_to_bounds(WIDTH, HEIGHT);
             }
 
@@ -178,7 +211,11 @@ int main() {
             float max_pixels_error_it;
             for (std::size_t i = 0; i < MAX_ITERATIONS; ++i) {
                 max_pixels_error_it = 0.0f;
-                for (auto& constraint : constraints) {
+
+                for (auto& constraint : constraints) constraint.satisfy();
+
+                for (auto& constraint :
+                     std::views::reverse(constraints)) {
                     max_pixels_error_it = std::max(max_pixels_error_it,
                                                    constraint.satisfy());
                 }
@@ -199,9 +236,9 @@ int main() {
             hud.update(StatusLine::FPS, "FPS",
                        static_cast<std::size_t>(fps));
             hud.update(StatusLine::Iterations, "CIPS", cips);
-            hud.update(StatusLine::Error, "MPE", max_pixels_error),
+            hud.update(StatusLine::Error, "MPE", max_pixels_error);
 
-                timer = 0.0f;
+            timer = 0.0f;
             frameCounter = 0;
             iterationCounter = 0;
         }

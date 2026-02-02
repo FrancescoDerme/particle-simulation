@@ -36,15 +36,15 @@ class Particle {
         persistent_acceleration += force;
     }
 
-    void update() {
+    void update(float dt) {
         if (is_pinned) return;
 
         // Verlet intehration: r_(n+1) = 2r_n - r_(n-1) + a_n * dt^2
         sf::Vector2f velocity = position - previous_position;
         previous_position = position;
-        position += velocity * DAMPING +
-                    (persistent_acceleration + temporary_acceleration) *
-                        TIME_PER_FRAME_SEC * TIME_PER_FRAME_SEC;
+        position +=
+            velocity * DAMPING +
+            (persistent_acceleration + temporary_acceleration) * dt * dt;
         temporary_acceleration = sf::Vector2f(0, 0);
     }
 
