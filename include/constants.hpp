@@ -36,11 +36,18 @@ constexpr float STARTING_Y = HEIGHT / 2.0 - ROW * REST_DISTANCE / 2.0;
 
 // Simulation
 constexpr float EPS = 0.000001f;
-constexpr float MAX_TIME_STEP = 0.25f;
-constexpr std::size_t MAX_ITERATIONS = 10;
+constexpr std::size_t MAX_ITERATIONS = 5;
 constexpr float ERROR_TOLERANCE_PIXELS = 0.5f;
-constexpr sf::Time TIME_PER_FRAME = sf::seconds(1.f / 60.f);
+constexpr std::size_t FRAMES_PER_SECOND = 60.f;
+constexpr sf::Time TIME_PER_FRAME = sf::seconds(1.f / FRAMES_PER_SECOND);
 constexpr float TIME_PER_FRAME_SEC = TIME_PER_FRAME.asSeconds();
-// constexpr float CRITICAL_LENGTH = 1.44f * REST_DISTANCE / 2.0f;
+constexpr float MAX_TIME_STEP = 0.125f;
+constexpr std::size_t WARMUP_CYCLES = 2;
+
+// File system
+constexpr std::string_view FONT = "../resources/arial-font/arial.ttf";
+constexpr std::string_view WARM_START_CACHE = "../warm_start.cache";
+constexpr std::string_view SOURCE_FOLDER = "../src";
+constexpr std::string_view INCLUDE_FOLDER = "../include";
 
 #endif  // CONSTANTS_HPP

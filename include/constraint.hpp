@@ -47,13 +47,11 @@ class Constraint {
         float effective_stiffness =
             (diff > 0) ? dilation_stiffness : contraction_stiffness;
 
-        sf::Vector2f correction =
-            delta * (diff / current_length * effective_stiffness);
+        sf::Vector2f correction = delta * diff * effective_stiffness /
+                                  (current_length * mass_sum);
 
-        if (!p1->is_pinned)
-            p1->position += correction * (p1_mass / mass_sum);
-        if (!p2->is_pinned)
-            p2->position -= correction * (p2_mass / mass_sum);
+        if (!p1->is_pinned) p1->position += correction * p1_mass;
+        if (!p2->is_pinned) p2->position -= correction * p2_mass;
 
         return std::abs(diff);
     }

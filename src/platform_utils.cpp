@@ -68,3 +68,22 @@ void toggleFullscreen(sf::RenderWindow& window) {
     }
 }
 #endif
+
+fs::file_time_type getLatestFolderTime(const fs::path& path) {
+    fs::file_time_type maxTime = fs::file_time_type::min();
+
+    for (const auto& entry : fs::recursive_directory_iterator(path)) {
+        if (entry.is_regular_file()) {
+            if (entry.path().extension() != ".cpp" &&
+                entry.path().extension() != ".h")
+                continue;
+
+            auto currentTime = entry.last_write_time();
+            if (currentTime > maxTime) {
+                maxTime = currentTime;
+            }
+        }
+    }
+
+    return maxTime;
+}

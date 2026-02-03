@@ -1,4 +1,8 @@
 build/
+warm_start.cache
+
+# Clang
 .cache/
 .clangd/
 compile_commands.json
+

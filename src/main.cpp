@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <ranges>
 
 #include "constants.hpp"
 #include "constraint.hpp"
@@ -7,6 +8,7 @@
 #include "particle.hpp"
 #include "platform_utils.hpp"
 #include "statushud.hpp"
+#include "warm_start.hpp"
 
 int main() {
     sf::Vector2u window_dimensions{WIDTH, HEIGHT};
@@ -14,9 +16,20 @@ int main() {
                             "Cloth simulation", sf::Style::Default,
                             sf::State::Windowed);
 
+    // Setup world view (centers physics at middle of WIDTH/HEIGHT)
+    sf::View worldView(sf::FloatRect(
+        {0.f, 0.f},
+        {static_cast<float>(WIDTH), static_cast<float>(HEIGHT)}));
+    worldView.setCenter({WIDTH / 2.f, HEIGHT / 2.f});
+
+    // Setup HUD view (centers (0,0) at top-left of screen)
+    sf::View hudView(sf::FloatRect(
+        {0.f, 0.f},
+        {static_cast<float>(WIDTH), static_cast<float>(HEIGHT)}));
+
     // Setup text HUD
     StatusHUD hud;
-    if (!hud.init("../resources/arial-font/arial.ttf")) {
+    if (!hud.init(FONT.data())) {
         return -1;
     }
 
@@ -25,12 +38,10 @@ int main() {
     float timer = 0.0f, max_pixels_error = 0.0f;
     std::size_t frameCounter = 0, iterationCounter = 0;
 
+    // Initialize particles
     std::vector<Particle> particles;
     particles.reserve(ROW * COL);
 
-    std::vector<Constraint> constraints;
-
-    // Initialize particles
     for (std::size_t row = 0; row < ROW; ++row) {
         for (std::size_t col = 0; col < COL; ++col) {
             float x = col * REST_DISTANCE + STARTING_X;
@@ -41,6 +52,8 @@ int main() {
     }
 
     // Initialize constraints
+    std::vector<Constraint> constraints;
+
     for (std::size_t row = 0; row < ROW; ++row) {
         for (std::size_t col = 0; col < COL; ++col) {
             // Horizontal constraint
@@ -74,6 +87,44 @@ int main() {
         }
     }
 
+    // Initialize positions from the warm start cache if available
+    bool needRebake = true;
+    fs::path cachePath = WARM_START_CACHE.data();
+
+    // Check if cache exists and is newer than the source code
+    if (fs::exists(cachePath)) {
+        auto cacheTime = fs::last_write_time(cachePath);
+        auto sourceTime = max(getLatestFolderTime(SOURCE_FOLDER.data()),
+                              getLatestFolderTime(INCLUDE_FOLDER.data()));
+
+        if (cacheTime >= sourceTime && loadWarmStart(particles))
+            needRebake = false;
+    }
+
+    if (needRebake) {
+        window.setView(hudView);
+        hud.update(StatusLine::Baking, "Baking");
+        hud.draw(window);
+        window.display();
+
+        for (int i = 0; i < WARMUP_CYCLES * FRAMES_PER_SECOND; ++i) {
+            for (auto& particle : particles) {
+                particle.update(TIME_PER_FRAME_SEC);
+                particle.constraint_to_bounds(WIDTH, HEIGHT);
+            }
+
+            for (int j = 0; j < MAX_ITERATIONS; ++j) {
+                for (auto& constraint : constraints) constraint.satisfy();
+                for (auto& constraint : std::views::reverse(constraints))
+                    constraint.satisfy();
+            }
+        }
+
+        saveWarmStart(particles);
+
+        hud.update(StatusLine::Baking, "Baked", 3.f);
+    }
+
     sf::VertexArray particlePoints(sf::PrimitiveType::Points, ROW * COL);
     sf::VertexArray constraintLines(sf::PrimitiveType::Lines,
                                     constraints.size() * 2);
@@ -86,11 +137,20 @@ int main() {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
             }
-            else if (event->is<sf::Event::Resized>()) {
-                // Update view to fix stretching
-                sf::View view({WIDTH / 2.0f, HEIGHT / 2.0f},
-                              sf::Vector2f{window.getSize()});
-                window.setView(view);
+            else if (const auto* resized =
+                         event->getIf<sf::Event::Resized>()) {
+                sf::Vector2f newSize(static_cast<float>(resized->size.x),
+                                     static_cast<float>(resized->size.y));
+
+                // World view: match new size, center at (WIDTH/2,
+                // HEIGHT/2)
+                worldView.setSize(newSize);
+                worldView.setCenter({WIDTH / 2.f, HEIGHT / 2.f});
+
+                // HUD view: match new size, center at (newSize.x/2,
+                // newSize.y/2) so (0, 0) is top-left
+                hudView.setSize(newSize);
+                hudView.setCenter({newSize.x / 2.f, newSize.y / 2.f});
             }
             else if (const auto* keyPressed =
                          event->getIf<sf::Event::KeyPressed>()) {
@@ -170,7 +230,7 @@ int main() {
         while (timeSinceLastUpdate >= TIME_PER_FRAME) {
             // Update the particles
             for (auto& particle : particles) {
-                particle.update();
+                particle.update(TIME_PER_FRAME_SEC);
                 particle.constraint_to_bounds(WIDTH, HEIGHT);
             }
 
@@ -178,7 +238,11 @@ int main() {
             float max_pixels_error_it;
             for (std::size_t i = 0; i < MAX_ITERATIONS; ++i) {
                 max_pixels_error_it = 0.0f;
-                for (auto& constraint : constraints) {
+
+                for (auto& constraint : constraints) constraint.satisfy();
+
+                for (auto& constraint :
+                     std::views::reverse(constraints)) {
                     max_pixels_error_it = std::max(max_pixels_error_it,
                                                    constraint.satisfy());
                 }
@@ -197,11 +261,11 @@ int main() {
             float fps = frameCounter / timer;
             float cips = iterationCounter / timer;
             hud.update(StatusLine::FPS, "FPS",
-                       static_cast<std::size_t>(fps));
-            hud.update(StatusLine::Iterations, "CIPS", cips);
-            hud.update(StatusLine::Error, "MPE", max_pixels_error),
+                       static_cast<std::size_t>(fps), -1.f);
+            hud.update(StatusLine::Iterations, "CIPS", cips, -1.f);
+            hud.update(StatusLine::Error, "MPE", max_pixels_error, -1.f);
 
-                timer = 0.0f;
+            timer = 0.0f;
             frameCounter = 0;
             iterationCounter = 0;
         }
@@ -212,6 +276,9 @@ int main() {
 
         // Clear the window with black color
         window.clear(sf::Color::Black);
+
+        // Set physics view
+        window.setView(worldView);
 
         // Draw particles as points
         for (std::size_t i = 0; i < particles.size(); ++i) {
@@ -261,7 +328,13 @@ int main() {
         }
 
         window.draw(constraintLines);
+
+        // Set UI view
+        window.setView(hudView);
+
+        hud.refresh(dt);
         hud.draw(window);
+
         window.display();
     }
 
