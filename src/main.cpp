@@ -124,6 +124,8 @@ int main() {
 
         hud.update(StatusLine::Baking, "Baked", 3.f);
     }
+    else
+        hud.update(StatusLine::Baking, "Cache loaded", 3.f);
 
     sf::VertexArray particlePoints(sf::PrimitiveType::Points, ROW * COL);
     sf::VertexArray constraintLines(sf::PrimitiveType::Lines,
